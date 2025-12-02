@@ -26,6 +26,7 @@ jobs:
           - '7_1'
           - '7_2'
           - '8_0'
+          - '8_1'
           - 'latest'
         mysql-version:
           - '8.0'
@@ -33,6 +34,8 @@ jobs:
           # Exclude conditions that don't meat the minimal requirement
           - ruby-version: '3.1'
             activerecord-version: '8_0'
+          - ruby-version: '3.1'
+            activerecord-version: '8_1'
 
           # Exclude duplicate conditions
           - ruby-version: '3.1'
