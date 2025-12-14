@@ -58,12 +58,22 @@ RSpec.describe ActiveRecord::DebugErrors::DisplayConnectionOwners do
 
       context "when the user doesn't have the permission to execute 'SHOW ENGINE INNODB STATUS'" do
         it "displays an error message" do
-          expect {
-            ActiveRecord::Base.connected_to(role: :reading) do
-              cause_deadlock(role: :reading)
-            end
-          }.to raise_error(ActiveRecord::Deadlocked)
-          expect(log.string).to include("Failed to execute")
+          # In ActiveRecord 8.1+, replica connections cannot execute lock queries,
+          # so it raises ActiveRecord::ReadOnlyError instead of ActiveRecord::Deadlocked.
+          if ActiveRecord.version >= Gem::Version.new("8.1")
+            expect {
+              ActiveRecord::Base.connected_to(role: :reading) do
+                cause_deadlock(role: :reading)
+              end
+            }.to raise_error(ActiveRecord::ReadOnlyError)
+          else
+            expect {
+              ActiveRecord::Base.connected_to(role: :reading) do
+                cause_deadlock(role: :reading)
+              end
+            }.to raise_error(ActiveRecord::Deadlocked)
+            expect(log.string).to include("Failed to execute")
+          end
         end
       end
     end
