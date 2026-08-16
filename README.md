@@ -20,6 +20,33 @@ Or install it yourself as:
 
     $ gem install activerecord-debug_errors
 
+## Prerequisites
+
+### MySQL permissions
+
+To collect complete MySQL diagnostics, the account used by Active Record needs the
+global [`PROCESS`](https://dev.mysql.com/doc/refman/8.4/en/privileges-provided.html#priv_process)
+privilege:
+
+```sql
+GRANT PROCESS ON *.* TO 'application_user'@'application_host';
+```
+
+The gem runs `SHOW ENGINE INNODB STATUS` for lock wait timeouts and deadlocks.
+MySQL requires `PROCESS` to execute this statement. Without the privilege, the
+gem logs the resulting permission error instead of the InnoDB diagnostic
+section.
+
+For lock wait timeouts, the gem also runs `SHOW FULL PROCESSLIST`. This
+statement works without `PROCESS`, but only shows threads owned by the current
+MySQL account. With `PROCESS`, it shows threads for all accounts, which may be
+necessary to identify the session holding a lock.
+
+Because `PROCESS` can expose statements executed by other users on the same
+server, grant it only when the additional diagnostic visibility is acceptable.
+The privilege is global and cannot be limited to the application's database.
+
+
 ## Usage
 
 You only have to load the gem:
@@ -117,8 +144,6 @@ Record lock, heap no 2 PHYSICAL RECORD: n_fields 2; compact format; info bits 0
 
 *** WE ROLL BACK TRANSACTION (2)
 ```
-
-Note that the user requires the PROCESS priviledge to collect the information.
 
 ### ActiveRecord::ConnectionTimeoutError
 
