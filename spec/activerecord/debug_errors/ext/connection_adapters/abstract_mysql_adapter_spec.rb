@@ -59,9 +59,7 @@ RSpec.describe ActiveRecord::DebugErrors::DisplayConnectionOwners do
       context "when the user doesn't have the permission to execute 'SHOW ENGINE INNODB STATUS'" do
         it "displays an error message" do
           expect {
-            ActiveRecord::Base.connected_to(role: :reading) do
-              cause_deadlock(role: :reading)
-            end
+            cause_deadlock(role: :restricted)
           }.to raise_error(ActiveRecord::Deadlocked)
           expect(log.string).to include("Failed to execute")
         end
