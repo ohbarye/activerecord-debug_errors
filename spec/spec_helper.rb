@@ -29,11 +29,11 @@ RSpec.configure do |config|
       },
     }
 
-    user_for_replica = 'activerecord-debug_errors'
+    restricted_user = 'activerecord-debug_errors'
     ActiveRecord::Base.configurations = {
       default_env: {
         primary: base_db_config,
-        primary_replica: base_db_config.merge(username: user_for_replica, replica: true),
+        restricted: base_db_config.merge(username: restricted_user),
       }
     }
 
@@ -48,7 +48,7 @@ RSpec.configure do |config|
 
     class ApplicationRecord < ActiveRecord::Base
       self.abstract_class = true
-      connects_to database: { writing: :primary, reading: :primary_replica }
+      connects_to database: { writing: :primary, restricted: :restricted }
     end
     class User < ApplicationRecord; end
 
@@ -56,10 +56,10 @@ RSpec.configure do |config|
     User.find_or_create_by!(name: 'bar')
 
     ActiveRecord::Base.connection.execute(<<~SQL)
-      CREATE USER IF NOT EXISTS '#{user_for_replica}'@'%' IDENTIFIED BY '#{ENV['MYSQL_PASSWORD']}'
+      CREATE USER IF NOT EXISTS '#{restricted_user}'@'%' IDENTIFIED BY '#{ENV['MYSQL_PASSWORD']}'
     SQL
     ActiveRecord::Base.connection.execute(<<~SQL)
-      GRANT SELECT, LOCK TABLES ON *.* To '#{user_for_replica}'@'%'
+      GRANT SELECT, LOCK TABLES ON *.* To '#{restricted_user}'@'%'
     SQL
   end
 end
