@@ -29,16 +29,6 @@ jobs:
           - '8.0' # Aurora MySQL version 3, which is compatible with MySQL 8.0, reaches EOL on April 30, 2028
           - '8.4'
           - '9.7'
-        exclude:
-          # Exclude conditions that don't meat the minimal requirement
-          - ruby-version: '3.1'
-            activerecord-version: '8_0'
-          - ruby-version: '3.1'
-            activerecord-version: '8_1'
-
-          # Exclude duplicate conditions
-          - ruby-version: '3.1'
-            activerecord-version: 'latest' # equivalent to '7_2'
     services:
       mysql:
         image: mysql:${{ matrix.mysql-version }}
